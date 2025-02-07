@@ -1,0 +1,15 @@
+[package]
+name = "manga-notifier"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1.8", features = ["full", "rt-multi-thread", "macros"] }
+serde = { version = "1.0.197", features = ["derive"]}
+teloxide = { version = "0.12", features = ["macros"] }
+rusqlite = { version = "0.31.0", features = ["bundled"] }
+openssl = { version = "0.10", features = ["vendored"] }
+url = "2.5.4"

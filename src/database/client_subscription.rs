@@ -1,10 +1,9 @@
 use rusqlite::{Connection, Result};
-use std::error::Error;
 
 #[derive(Debug)]
-pub struct Manga {
+pub struct ClientSubscription {
     pub manga_id: String,
-    pub current_chapter: String
+    pub client_id: String
 }
 
 fn create_client_subscription_table(conn: &Connection) -> Result<()> {
@@ -13,28 +12,36 @@ fn create_client_subscription_table(conn: &Connection) -> Result<()> {
             manga_id TEXT NOT NULL,
             client_id TEXT NOT NULL,
             FOREIGN KEY(manga_id) REFERENCES manga(id),
-            FOREIGN KEY(client_id) REFERENCES client(telegram_id),
+            FOREIGN KEY(client_id) REFERENCES client(telegram_id)
         )",
-        (), // empty list of parameters.
+        (),
     )?;
 
     Ok(())
 }
 
-pub async fn insert_manga_in_manga_list(conn: &Connection, manga_id: String, current_chapter: String) -> Result<()> {
+pub fn insert_client_subscription(manga_id: String, client_id: String) -> Result<()> {
+    let conn = Connection::open("./database.db3")?;
+
     let _ = create_client_subscription_table(&conn);
 
-    conn.execute(
-        "INSERT INTO manga VALUES ((?1), (?2) )",
-        (manga_id, current_chapter),
-    )?;
+    let client_subscription = get_client_subscription(&conn, manga_id.clone(), client_id.clone());
+
+    if let Err(_) = client_subscription {
+        conn.execute(
+            "INSERT INTO client_subscription VALUES ((?1), (?2) )",
+            (manga_id, client_id),
+        )?;
+    }
 
     println!("Manga inserted");
 
+    let _ = conn.close();
+
     Ok(())
 }
 
-pub async fn remove_manga_from_manga_list(conn: &Connection, manga_id: String, current_chapter: String) -> Result<()> {
+pub fn remove_manga_from_manga_list(conn: &Connection, manga_id: String, current_chapter: String) -> Result<()> {
     let _ = create_client_subscription_table(&conn);
 
     conn.execute(
@@ -47,19 +54,19 @@ pub async fn remove_manga_from_manga_list(conn: &Connection, manga_id: String, c
     Ok(())
 }
 
-pub fn get_current_chapter_from_manga_database(conn: &Connection, manga_id: String) -> Result<String, Box<dyn Error>> {
+pub fn get_client_subscription(conn: &Connection, manga_id: String, client_id: String) -> Result<ClientSubscription> {
     let _ = create_client_subscription_table(conn);
 
-    let mut stmt = conn.prepare("SELECT * FROM manga WHERE manga_id=(?1)")?;
+    let mut stmt = conn.prepare("SELECT * FROM manga WHERE manga_id=(?1) AND client_id=(?2)")?;
 
-    let manga = stmt.query_row([manga_id], |row| {
-        Ok(Manga {
+    let manga_subscription = stmt.query_row([manga_id, client_id], |row| {
+        Ok(ClientSubscription {
             manga_id: row.get(0)?,
-            current_chapter: row.get(1)?
+            client_id: row.get(1)?
         })
     });
 
-    let current_chapter = manga?.current_chapter;
+    let manga_subscription = manga_subscription?;
 
-    Ok(current_chapter)
+    Ok(manga_subscription)
 }

@@ -10,29 +10,42 @@ pub struct Manga {
 fn create_manga_table(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS manga (
-            id TEXT NOT NULL,
+            id TEXT NOT NULL PRIMARY KEY,
             current_chapter TEXT NOT NULL
         )",
-        (), // empty list of parameters.
+        (),
     )?;
 
     Ok(())
 }
 
-pub async fn insert_manga_in_database(conn: &Connection, manga_id: String, current_chapter: String) -> Result<()> {
+pub fn insert_manga_in_database(manga_id: String, current_chapter: String) -> Result<()> {
+    let conn = Connection::open("./database.db3")?;
+
     let _ = create_manga_table(&conn);
 
-    conn.execute(
-        "INSERT INTO manga VALUES ((?1), (?2) )",
-        (manga_id, current_chapter),
-    )?;
+    let current_chapter_in_db = get_current_chapter_from_manga_database(&conn, manga_id.clone());
 
-    println!("Manga inserted");
+    match current_chapter_in_db {
+        Ok(current_chapter_db) => {
+            if !current_chapter.eq(&current_chapter_db) {
+                let _ = update_manga_in_database(&conn, manga_id.into(), current_chapter.clone());
+            }
+        },
+        Err(_) => {
+            conn.execute(
+                "INSERT INTO manga VALUES ((?1), (?2) )",
+                (manga_id, current_chapter),
+            )?;
+        }
+    }
+
+    let _ = conn.close();
 
     Ok(())
 }
 
-pub async fn update_manga_in_database(conn: &Connection, manga_id: String, current_chapter: String) -> Result<()> {
+pub fn update_manga_in_database(conn: &Connection, manga_id: String, current_chapter: String) -> Result<()> {
     let _ = create_manga_table(&conn);
 
     conn.execute(

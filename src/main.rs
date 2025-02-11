@@ -6,7 +6,7 @@ use std::{thread, time};
 use manga_info_getter::{get_current_chapter, search_for_manga, get_manga_cover_art};
 use database::client::{get_clients, insert_client_in_database};
 use database::manga::{insert_manga_in_database, update_manga_in_database, get_current_chapter_from_manga_database};
-use handlers::{help, receive_manga_index, receive_search, search, start};
+use handlers::{help, list, receive_manga_index, receive_search, search, start};
 
 pub mod manga_info_getter;
 pub mod database;
@@ -67,6 +67,11 @@ async fn main() -> Result<()> {
                 Update::filter_message()
                     .filter_command::<Command>()
                     .branch(case![Command::Search].endpoint(search))
+            )
+            .branch(
+                Update::filter_message()
+                    .filter_command::<Command>()
+                    .branch(case![Command::List].endpoint(list))
             )
             .branch(dptree::case![State::ReceiveSearch].endpoint(receive_search))
             .branch(dptree::case![State::ReceiveMangaIndex { avaible_mangas_id }].endpoint(receive_manga_index))

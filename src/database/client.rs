@@ -8,9 +8,9 @@ pub struct Client {
 pub fn create_client_table(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS client (
-            telegram_id TEXT NOT NULL UNIQUE
+            telegram_id TEXT NOT NULL PRIMARY KEY
         )",
-        (), // empty list of parameters.
+        (),
     )?;
 
     Ok(())
@@ -35,6 +35,8 @@ pub fn insert_client_in_database(telegram_id: String) -> Result<()> {
 
         println!("Client inserted");
     }
+
+    let _ = conn.close();
 
     Ok(())
 }

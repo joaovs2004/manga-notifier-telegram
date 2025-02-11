@@ -34,7 +34,7 @@ pub async fn get_manga_cover_art(cover_art_id: String) -> Result<String, Box<dyn
     Ok(resp.data.attributes.fileName)
 }
 
-pub async fn get_current_chapter(manga_id: String) -> Result<LastChapterInfo, Box<dyn Error>> {
+pub async fn get_current_chapter(manga_id: String) -> Result<LastChapterInfo, Box<dyn std::error::Error + Send + Sync>> {
     let url = format!("https://api.mangadex.org/manga/{}/feed?translatedLanguage[]=pt-br&limit=96&includes[]=scanlation_group&includes[]=user&order[volume]=desc&order[chapter]=desc&offset=0&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic", manga_id);
 
     let client = reqwest::Client::new();

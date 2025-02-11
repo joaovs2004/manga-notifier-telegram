@@ -1,10 +1,12 @@
 use teloxide::utils::command::BotCommands;
 use teloxide::{dispatching::dialogue::InMemStorage, prelude::*};
 
+use crate::database::client_subscription::insert_client_subscription;
 use crate::{Command, State};
-use crate::manga_info_getter::search_for_manga;
+use crate::manga_info_getter::{get_current_chapter, search_for_manga};
 use crate::data_types;
 use crate::database::client::insert_client_in_database;
+use crate::database::manga::insert_manga_in_database;
 
 type MyDialogue = Dialogue<State, InMemStorage<State>>;
 type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
@@ -92,12 +94,22 @@ pub async fn receive_manga_index(bot: Bot, _dialogue: MyDialogue, avaible_mangas
 
     match avaible_mangas.get(index_to_remove - 1) {
         Some(manga) => {
-            println!("{}", manga);
-        }
+            let current_chapter_info = get_current_chapter(manga.to_string()).await;
+
+            if let Ok(current_chapter_info) = current_chapter_info {
+                let _ = insert_manga_in_database(manga.to_string(), current_chapter_info.number);
+                let _ = insert_client_subscription(manga.to_string(), msg.chat.id.to_string());
+                bot.send_message(msg.chat.id, "Manga inserted").await?;
+            }
+        },
         None => {
             bot.send_message(msg.chat.id, "Type the correct number of manga").await?;
         }
-    }
+    };
 
+    Ok(())
+}
+
+pub async fn list(bot: Bot, _dialogue: MyDialogue, msg: Message) -> HandlerResult {
     Ok(())
 }

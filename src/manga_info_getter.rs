@@ -1,10 +1,9 @@
 use reqwest::header::USER_AGENT;
-use serde::Deserialize;
 use std::error::Error;
 
 use crate::data_types::manga_types::{LastChapterInfo, Manga, Cover};
 
-pub async fn search_for_manga(title: String) -> Result<Manga, Box<dyn Error>> {
+pub async fn search_for_manga(title: String) -> Result<Manga, Box<dyn std::error::Error + Send + Sync>> {
     let url = format!("https://api.mangadex.org/manga?title={}", title.replace(" ", "%20"));
 
     let client = reqwest::Client::new();
@@ -16,7 +15,6 @@ pub async fn search_for_manga(title: String) -> Result<Manga, Box<dyn Error>> {
         .await?;
 
     let resp = resp.json::<Manga>().await?;
-    //println!("{:?}", resp);
 
     Ok(resp)
 }

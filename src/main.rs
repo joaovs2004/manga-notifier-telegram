@@ -1,4 +1,4 @@
-use data_types::manga_types::LastChapterInfo;
+use data_types::manga_types::{LastChapterInfo, Manga};
 use dptree::case;
 use rusqlite::{Connection, Result};
 use teloxide::{prelude::*, repls::CommandReplExt, dispatching::dialogue::InMemStorage, utils::command::BotCommands,types::{InlineKeyboardButton, InlineKeyboardMarkup, InputFile}};
@@ -6,15 +6,12 @@ use std::{thread, time};
 use manga_info_getter::{get_current_chapter, search_for_manga, get_manga_cover_art};
 use database::client::{get_clients, insert_client_in_database};
 use database::manga::{insert_manga_in_database, update_manga_in_database, get_current_chapter_from_manga_database};
-use handlers::{help, receive_manga_id, receive_search, search, start};
+use handlers::{help, receive_manga_index, receive_search, search, start};
 
 pub mod manga_info_getter;
 pub mod database;
 pub mod data_types;
 pub mod handlers;
-
-type MyDialogue = Dialogue<State, InMemStorage<State>>;
-type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
 
 #[derive(Clone, Default)]
 pub enum State {
@@ -26,7 +23,9 @@ pub enum State {
     Remove,
     Search,
     ReceiveSearch,
-    ReceiveMangaId 
+    ReceiveMangaIndex {
+        avaible_mangas_id: Vec<String>
+    },
 }
 
 #[derive(BotCommands, Clone)]
@@ -43,7 +42,7 @@ pub enum Command {
     #[command(description = "Remove manga from your list")]
     Remove,
     #[command(description = "Search for manga in mangadex")]
-    Search,
+    Search
 }
 
 #[tokio::main]
@@ -70,6 +69,7 @@ async fn main() -> Result<()> {
                     .branch(case![Command::Search].endpoint(search))
             )
             .branch(dptree::case![State::ReceiveSearch].endpoint(receive_search))
+            .branch(dptree::case![State::ReceiveMangaIndex { avaible_mangas_id }].endpoint(receive_manga_index))
     )
     .dependencies(dptree::deps![InMemStorage::<State>::new()])
     .enable_ctrlc_handler()

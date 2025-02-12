@@ -1,16 +1,31 @@
 use rusqlite::{Connection, Result};
 use std::error::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Manga {
     pub manga_id: String,
+    pub name: String,
     pub current_chapter: String
+}
+
+#[derive(Debug, Clone)]
+pub struct VecManga {
+    pub mangas: Vec<Manga>
+}
+
+impl VecManga {
+    pub fn new() -> Self {
+        Self {
+            mangas: Vec::new()
+        }
+    }
 }
 
 fn create_manga_table(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS manga (
             id TEXT NOT NULL PRIMARY KEY,
+            name TEXT NOT NULL,
             current_chapter TEXT NOT NULL
         )",
         (),
@@ -19,7 +34,7 @@ fn create_manga_table(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn insert_manga_in_database(manga_id: String, current_chapter: String) -> Result<()> {
+pub fn insert_manga_in_database(manga_id: String, name: String, current_chapter: String) -> Result<()> {
     let conn = Connection::open("./database.db3")?;
 
     let _ = create_manga_table(&conn);
@@ -34,8 +49,8 @@ pub fn insert_manga_in_database(manga_id: String, current_chapter: String) -> Re
         },
         Err(_) => {
             conn.execute(
-                "INSERT INTO manga VALUES ((?1), (?2) )",
-                (manga_id, current_chapter),
+                "INSERT INTO manga VALUES ((?1), (?2), (?3) )",
+                (manga_id, name, current_chapter),
             )?;
         }
     }
@@ -80,7 +95,8 @@ pub fn get_current_chapter_from_manga_database(conn: &Connection, manga_id: Stri
     let manga = stmt.query_row([manga_id], |row| {
         Ok(Manga {
             manga_id: row.get(0)?,
-            current_chapter: row.get(1)?
+            name: row.get(1)?,
+            current_chapter: row.get(2)?
         })
     });
 

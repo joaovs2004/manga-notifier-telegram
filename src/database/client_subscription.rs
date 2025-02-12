@@ -3,7 +3,8 @@ use rusqlite::{Connection, Result};
 #[derive(Debug)]
 pub struct ClientSubscription {
     pub manga_id: String,
-    pub client_id: String
+    pub client_id: String,
+    pub manga_name: Option<String>
 }
 
 fn create_client_subscription_table(conn: &Connection) -> Result<()> {
@@ -57,16 +58,45 @@ pub fn remove_manga_from_manga_list(conn: &Connection, manga_id: String, current
 pub fn get_client_subscription(conn: &Connection, manga_id: String, client_id: String) -> Result<ClientSubscription> {
     let _ = create_client_subscription_table(conn);
 
-    let mut stmt = conn.prepare("SELECT * FROM manga WHERE manga_id=(?1) AND client_id=(?2)")?;
+    let mut stmt = conn.prepare("SELECT * FROM client_subscription WHERE manga_id=(?1) AND client_id=(?2)")?;
 
     let manga_subscription = stmt.query_row([manga_id, client_id], |row| {
         Ok(ClientSubscription {
             manga_id: row.get(0)?,
-            client_id: row.get(1)?
+            client_id: row.get(1)?,
+            manga_name: None
         })
     });
 
     let manga_subscription = manga_subscription?;
 
     Ok(manga_subscription)
+}
+
+pub fn get_all_client_subscriptions(client_id: String) -> Result<Vec<ClientSubscription>> {
+    let conn = Connection::open("./database.db3")?;
+
+    let _ = create_client_subscription_table(&conn);
+
+    let mut stmt = conn.prepare(
+        "SELECT manga_id, client_id, manga.name FROM client_subscription JOIN manga ON client_subscription.manga_id=manga.id WHERE client_id=(?1)"
+    )?;
+
+    let manga_subscription = stmt.query_map([client_id], |row| {
+        Ok(ClientSubscription {
+            manga_id: row.get(0)?,
+            client_id: row.get(1)?,
+            manga_name: row.get(2)?
+        })
+    });
+
+    let manga_subscription = manga_subscription?;
+
+    let mut manga_subscriptions: Vec<ClientSubscription> = Vec::new();
+
+    for manga in manga_subscription {
+        manga_subscriptions.push(manga?);
+    }
+
+    Ok(manga_subscriptions)
 }

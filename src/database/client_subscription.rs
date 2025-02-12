@@ -1,6 +1,6 @@
 use rusqlite::{Connection, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ClientSubscription {
     pub manga_id: String,
     pub client_id: String,
@@ -42,12 +42,14 @@ pub fn insert_client_subscription(manga_id: String, client_id: String) -> Result
     Ok(())
 }
 
-pub fn remove_manga_from_manga_list(conn: &Connection, manga_id: String, current_chapter: String) -> Result<()> {
+pub fn remove_manga_from_subscription(manga_id: String, client_id: String) -> Result<()> {
+    let conn = Connection::open("./database.db3")?;
+
     let _ = create_client_subscription_table(&conn);
 
     conn.execute(
-        "DELETE FROM manga WHERE manga_id ((?1), (?2) )",
-        (manga_id, current_chapter),
+        "DELETE FROM client_subscription WHERE manga_id=(?1) AND client_id=(?2)",
+        (manga_id, client_id),
     )?;
 
     println!("Manga inserted");

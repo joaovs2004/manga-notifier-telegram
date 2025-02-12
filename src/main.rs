@@ -4,9 +4,9 @@ use rusqlite::{Connection, Result};
 use teloxide::{prelude::*, repls::CommandReplExt, dispatching::dialogue::InMemStorage, utils::command::BotCommands,types::{InlineKeyboardButton, InlineKeyboardMarkup, InputFile}};
 use std::{thread, time};
 use manga_info_getter::{get_current_chapter, search_for_manga, get_manga_cover_art};
-use database::{client::{get_clients, insert_client_in_database}, manga::VecManga};
+use database::{client::{get_clients, insert_client_in_database}, client_subscription::{remove_manga_from_subscription, ClientSubscription}, manga::VecManga};
 use database::manga::{insert_manga_in_database, update_manga_in_database, get_current_chapter_from_manga_database};
-use handlers::{help, list, receive_manga_index, receive_search, search, start};
+use handlers::{help, list, receive_manga_index, receive_manga_to_remove_from_list, receive_search, search, start};
 
 pub mod manga_info_getter;
 pub mod database;
@@ -19,8 +19,9 @@ pub enum State {
     Start,
     Help,
     List,
-    Add,
-    Remove,
+    ReceiveMangaToRemoveFromList {
+        subscriptions: Vec<ClientSubscription>
+    },
     Search,
     ReceiveSearch,
     ReceiveMangaIndex {
@@ -35,13 +36,9 @@ pub enum Command {
     Help,
     #[command(description = "Adds the user to the database, when a new chapter is released the user is notified")]
     Start,
-    #[command(description = "List your mangas")]
+    #[command(description = "List the mangas in your list and remove any if desired")]
     List,
-    #[command(description = "Add manga to your list")]
-    Add,
-    #[command(description = "Remove manga from your list")]
-    Remove,
-    #[command(description = "Search for manga in mangadex")]
+    #[command(description = "Search for manga in mangadex and add the manga you want to your list")]
     Search
 }
 
@@ -75,6 +72,7 @@ async fn main() -> Result<()> {
             )
             .branch(dptree::case![State::ReceiveSearch].endpoint(receive_search))
             .branch(dptree::case![State::ReceiveMangaIndex { avaible_mangas }].endpoint(receive_manga_index))
+            .branch(dptree::case![State::ReceiveMangaToRemoveFromList { subscriptions }].endpoint(receive_manga_to_remove_from_list))
     )
     .dependencies(dptree::deps![InMemStorage::<State>::new()])
     .enable_ctrlc_handler()

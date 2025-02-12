@@ -71,18 +71,21 @@ pub fn update_manga_in_database(conn: &Connection, manga_id: String, current_cha
     Ok(())
 }
 
-pub fn get_all_manga_from_database(conn: &Connection, manga_id: String) -> Result<String, Box<dyn Error>> {
+pub fn get_all_manga_from_database(conn: &Connection) -> Result<Vec<Manga>, Box<dyn Error>> {
     let _ = create_manga_table(conn);
 
-    let mut stmt = conn.prepare("SELECT id FROM manga")?;
+    let mut stmt = conn.prepare("SELECT * FROM manga")?;
 
-    let result_manga_id = stmt.query_row([manga_id], |row| {
-        Ok(row.get(0)?)
-    });
+    let mangas: Result<Vec<Manga>> = stmt.query_map([], |row| {
+        Ok(Manga {
+            manga_id: row.get(0)?,
+            name: row.get(1)?,
+            current_chapter: row.get(2)?,
+        })
+    })?.collect();
 
-    let manga_id = result_manga_id?;
 
-    Ok(manga_id)
+    Ok(mangas.unwrap_or(Vec::new()))
 }
 
 pub fn get_current_chapter_from_manga_database(conn: &Connection, manga_id: String) -> Result<String, Box<dyn Error>> {

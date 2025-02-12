@@ -80,21 +80,33 @@ pub fn get_all_client_subscriptions(client_id: String) -> Result<Vec<ClientSubsc
         "SELECT manga_id, client_id, manga.name FROM client_subscription JOIN manga ON client_subscription.manga_id=manga.id WHERE client_id=(?1)"
     )?;
 
-    let manga_subscription = stmt.query_map([client_id], |row| {
+    let manga_subscription: Result<Vec<ClientSubscription>> = stmt.query_map([client_id], |row| {
         Ok(ClientSubscription {
             manga_id: row.get(0)?,
             client_id: row.get(1)?,
             manga_name: row.get(2)?
         })
-    });
+    })?.collect();
 
-    let manga_subscription = manga_subscription?;
+    Ok(manga_subscription.unwrap_or(Vec::new()))
+}
 
-    let mut manga_subscriptions: Vec<ClientSubscription> = Vec::new();
+pub fn get_client_subscriptions_by_manga(manga_id: String) -> Result<Vec<ClientSubscription>> {
+    let conn = Connection::open("./database.db3")?;
 
-    for manga in manga_subscription {
-        manga_subscriptions.push(manga?);
-    }
+    let _ = create_client_subscription_table(&conn);
 
-    Ok(manga_subscriptions)
+    let mut stmt = conn.prepare(
+        "SELECT manga_id, client_id, manga.name FROM client_subscription JOIN manga ON client_subscription.manga_id=manga.id WHERE manga_id=(?1)"
+    )?;
+
+    let manga_subscription: Result<Vec<ClientSubscription>> = stmt.query_map([manga_id], |row| {
+        Ok(ClientSubscription {
+            manga_id: row.get(0)?,
+            client_id: row.get(1)?,
+            manga_name: row.get(2)?
+        })
+    })?.collect();
+
+    Ok(manga_subscription.unwrap_or(Vec::new()))
 }

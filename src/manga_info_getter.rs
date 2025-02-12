@@ -31,7 +31,7 @@ pub async fn get_manga_cover_art(cover_art_id: String) -> Result<String, Box<dyn
         .await?
         .json::<Cover>().await?;
 
-    Ok(resp.data.attributes.fileName)
+    Ok(resp.data.attributes.file_name)
 }
 
 pub async fn get_current_chapter(manga_id: String) -> Result<LastChapterInfo, Box<dyn std::error::Error + Send + Sync>> {

@@ -41,8 +41,9 @@ pub struct CoverData {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct CoverAttributes {
-    pub fileName: String
+    pub file_name: String
 }
 
 #[derive(Deserialize, Debug)]

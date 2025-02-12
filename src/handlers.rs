@@ -106,7 +106,7 @@ pub async fn receive_manga_index(bot: Bot, dialogue: MyDialogue, avaible_mangas:
     };
 
     if index_to_remove == 0 {
-        bot.send_message(msg.chat.id, "Quiting withount doing anything").await?;
+        bot.send_message(msg.chat.id, "No manga has been added to the list").await?;
         dialogue.exit().await?;
         return Ok(());
     }
@@ -188,7 +188,7 @@ pub async fn receive_manga_to_remove_from_list(bot: Bot, dialogue: MyDialogue, s
     };
 
     if index_to_remove == 0 {
-        bot.send_message(msg.chat.id, "Quiting withount doing anything").await?;
+        bot.send_message(msg.chat.id, "No manga has been removed from the list").await?;
         dialogue.exit().await?;
         return Ok(());
     }

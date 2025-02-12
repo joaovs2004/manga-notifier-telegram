@@ -35,8 +35,6 @@ pub fn insert_client_subscription(manga_id: String, client_id: String) -> Result
         )?;
     }
 
-    println!("Manga inserted");
-
     let _ = conn.close();
 
     Ok(())
@@ -51,8 +49,6 @@ pub fn remove_manga_from_subscription(manga_id: String, client_id: String) -> Re
         "DELETE FROM client_subscription WHERE manga_id=(?1) AND client_id=(?2)",
         (manga_id, client_id),
     )?;
-
-    println!("Manga inserted");
 
     Ok(())
 }

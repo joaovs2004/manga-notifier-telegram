@@ -32,8 +32,6 @@ pub fn insert_client_in_database(telegram_id: String) -> Result<()> {
             "INSERT INTO client (telegram_id) VALUES (?1)",
             &[&me.telegram_id],
         )?;
-
-        println!("Client inserted");
     }
 
     let _ = conn.close();

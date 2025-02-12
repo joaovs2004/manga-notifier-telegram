@@ -50,7 +50,7 @@ pub async fn get_current_chapter(manga_id: String) -> Result<LastChapterInfo, Bo
     let current_chapter_info = match resp.data.first() {
         Some(data) => {
             Ok(LastChapterInfo {
-                number: data.attributes.chapter.clone().unwrap(),
+                number: data.attributes.chapter.clone().unwrap_or("0".into()),
                 id: data.id.clone()
             })
         },

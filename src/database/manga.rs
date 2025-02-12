@@ -68,8 +68,6 @@ pub fn update_manga_in_database(conn: &Connection, manga_id: String, current_cha
         (manga_id, current_chapter),
     )?;
 
-    println!("Manga update");
-
     Ok(())
 }
 

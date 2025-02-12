@@ -25,6 +25,8 @@ pub async fn help(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResult
 }
 
 pub async fn search(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResult {
+    // Adds the user to the database in case it isn't there
+    let _ = insert_client_in_database(msg.chat.id.to_string());
     bot.send_message(msg.chat.id, "Type the name of the manga you want to search").await?;
     dialogue.update(crate::State::ReceiveSearch).await?;
 
@@ -131,15 +133,25 @@ pub async fn receive_manga_index(bot: Bot, dialogue: MyDialogue, avaible_mangas:
 }
 
 pub async fn list(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResult {
+    // Adds the user to the database in case it isn't there
+    let _ = insert_client_in_database(msg.chat.id.to_string());
+
     let subscriptions = get_all_client_subscriptions(msg.chat.id.to_string());
 
     match subscriptions {
         Ok(subscriptions) => {
+            if subscriptions.len() == 0 {
+                bot.send_message(msg.chat.id, "No manga found in your list").await?;
+                dialogue.exit().await?;
+                return Ok(());
+            }
+
             let mut found = String::from("Manga in your list: \n");
             let mut subscription_index = 1;
 
             for subscription in &subscriptions {
-                found.push_str(&format!("{} - {}\n", subscription_index, subscription.manga_name.clone().unwrap()));
+                // Manga name always will be avaible in this point, so using unwrap is not a problem
+                found.push_str(&format!("{} - {}\n", subscription_index, subscription.manga_name.clone().unwrap_or("Default".into())));
                 subscription_index += 1;
             }
 
@@ -155,7 +167,6 @@ pub async fn list(bot: Bot, dialogue: MyDialogue, msg: Message) -> HandlerResult
 
     Ok(())
 }
-
 
 pub async fn receive_manga_to_remove_from_list(bot: Bot, dialogue: MyDialogue, subscriptions: Vec<ClientSubscription>, msg: Message) -> HandlerResult {
     let text = match msg.text() {

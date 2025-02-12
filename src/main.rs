@@ -34,7 +34,7 @@ pub enum State {
 pub enum Command {
     #[command(description = "Shows the available commands")]
     Help,
-    #[command(description = "Adds the user to the database, when a new chapter is released the user is notified")]
+    #[command(description = "Adds the user to the database")]
     Start,
     #[command(description = "List the mangas in your list and remove any if desired")]
     List,

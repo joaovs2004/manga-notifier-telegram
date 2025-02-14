@@ -1,12 +1,24 @@
 # Manga Notifier Telegram
 
 
-A simple Telegram bot written in Rust that alert the user when a manga from his choice releases a new chapter. With this bot, users can add mangas to their reading list and receive notifications when a new chapter is released.
+A simple Telegram bot written in Rust that alert the user when a manga from his choice releases a new chapter. With this bot, users can add mangas to their reading list and receive notifications when a new chapter is released. This project uses the mangadex API.
 
 ## Features
 
 - **Add Manga to Your List**: Users can add their favorite manga series to a personal list.
 - **Chapter Notifications**: Receive alerts when a new chapter is released for manga in your list.
+
+## How to test
+
+If you have a telegram account, you can use this bot sending a message to https://t.me/MangaChapterAlertBot
+
+## Project demonstration
+
+![Gif demonstration](./demonstration/demo-video.gif)
+
+When a new chapter of a manga on your list is released, you receive a message that looks like this
+
+![Gif demonstration](./demonstration/screenshot_bot.png)
 
 ## Prerequisites
 

@@ -46,7 +46,7 @@ pub enum Command {
 async fn main() -> Result<()> {
     let bot = Bot::from_env();
 
-    tokio::spawn(spawn(bot.clone()));
+    tokio::spawn(spawn_dispatcher_tree(bot.clone()));
 
     let time_to_sleep = time::Duration::from_secs(60*60);
     let conn = Connection::open("./database.db3")?;
@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
     }
 }
 
-async fn spawn(bot: Bot) {
+async fn spawn_dispatcher_tree(bot: Bot) {
     Dispatcher::builder(
         bot.clone(),
         Update::filter_message()
